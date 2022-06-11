@@ -46,32 +46,20 @@ def animate(i):
 anim = animation.FuncAnimation(fig, animate, init_func=init,
                                frames=200, interval=10, blit=True)
 
-# save the animation as an mp4.  This requires ffmpeg or mencoder to be
-# installed.  The extra_args ensure that the x264 codec is used, so that
-# the video can be embedded in html5.  You may need to adjust this for
-# your system: for more information, see
-# http://matplotlib.sourceforge.net/api/animation_api.html
-#anim.save('basic_animation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-
-#plt.show()
-
-
-# lines above this line is the original code from Jake Vanderplas
-# url https://jakevdp.github.io/downloads/code/basic_animation.py
-
 
 
 # modification from Sparisoma Viridi 2022-03-29
 option = 1
 
-if option == 0:
+if option == 1:
     writergif = animation.PillowWriter(fps=60)
     f_name = "anim.gif"
     anim.save(f_name, writer=writergif)
-else:
-	plt.show()
 
-# move gif file in workspace_folder to this current_folder
-src_path = os.path.dirname(__file__)
-dst_path = os.path.join(src_path, "../media/anim.gif")
-shutil.move(src_path, dst_path)
+    # move gif file in workspace_folder to this current_folder
+    src_path = os.getcwd()
+    src_path = os.path.join(src_path, f_name)
+    dst_path = os.path.join(src_path, "../media/")
+    shutil.move(src_path, dst_path)
+
+plt.show()
