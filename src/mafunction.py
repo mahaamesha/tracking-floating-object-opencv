@@ -3,20 +3,24 @@ import cv2 as cv
 import sys
 
 
+def show_frame(winname, img, isSave=0):
+    cv.imshow(winname=winname, mat=img)
+    cv.waitKey(0)
+    if isSave: cv.imwrite(filename=winname, img=img)
+
+
 # read image
 def read_img(file_path="media/img1.jpg"):
     img = cv.imread(file_path)
 
     if img is None:
         sys.exit("Error: Could not read the image")
-    
-    cv.imshow(winname=file_path, mat=img)
-    cv.waitKey(0)
-    cv.imwrite(filename=file_path, img=img)
+
+    return img
 
 
 # set size video
-def set_size_video(cap, size=(640, 480)):
+def set_frame_size(cap, size=(640, 480)):
     cap.set(cv.CAP_PROP_FRAME_WIDTH, size[0])
     cap.set(cv.CAP_PROP_FRAME_HEIGHT, size[1])
 
@@ -61,9 +65,12 @@ def processing_frame(frame):
     # bluring to removes noise
     imgaus = cv.GaussianBlur(gray, (5,5), 0)
 
+    # Set BACKGROUND to Black and OBJECT to White
+    ret, thresh = cv.threshold(imgaus, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)
+
 
     # finding contours
-    cnts, hierarchy = cv.findContours(imgaus, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    cnts, hierarchy = cv.findContours(imgaus, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
     for cnt in cnts:
         cv.drawContours(frame, cnt, -1, (0,255,0), 3)
     print("Contours:", len(cnts))
@@ -71,6 +78,9 @@ def processing_frame(frame):
     cv.imshow("frame", frame)
     cv.imshow("gray", gray)
     cv.imshow("imgaus", imgaus)
+    cv.imshow("thresh", thresh)
+
+    return frame
 
 
 # capture video from camera 0
@@ -130,13 +140,13 @@ def play_video(file_path="media/media1.mp4"):
             break
 
         # resize
-        #frame = resize_frame(frame, (640,480))
+        frame = resize_frame(frame, (640,480))
 
         # playback video by reset the frame_counter
         cap, frame_counter = reverse_playback(cap, frame_counter)
         
         # image processing for every frame
-        processing_frame(frame)
+        frame = processing_frame(frame)
 
         # show the frame
         # cv.imshow("frame", frame)

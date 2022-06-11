@@ -14,12 +14,30 @@ def init():
     line.set_data([], [])
     return line,
 
+def f(x, i):
+    y = np.sin(0.2*np.pi*x - 0.01*np.pi*i)
+    return y
+
+# make floating object
+def floating_obj(y_value):
+    # draw circle
+    xc = 4
+    yc = y_value
+    r = 1
+    circle = plt.Circle(
+        (xc, yc), radius=r,
+        fc='#ccf',
+        lw=2, ls='dashed', color='k'
+    )
+    plt.gca().add_patch(circle)
+
 # animation function.  This is called sequentially
 def animate(i):
     x = np.linspace(0, 8, 1000)
 	
     # y for wave equation that move to rigth
-    y = np.sin(0.2*np.pi*x - 0.01*np.pi*i)
+    y = f(x, i)
+    #floating_obj(y_value=0)
 		
     line.set_data(x, y)
     return line,
@@ -48,12 +66,12 @@ option = 1
 
 if option == 0:
     writergif = animation.PillowWriter(fps=60)
-    f_name = 'wave_right.gif'
+    f_name = "anim.gif"
     anim.save(f_name, writer=writergif)
 else:
 	plt.show()
 
 # move gif file in workspace_folder to this current_folder
-src_path = os.getcwd() + '\\' + f_name      # in ~/FI3201-01-2021-2
-dst_path = os.path.dirname(os.path.abspath(__file__)) + '\\' + f_name
+src_path = os.path.dirname(__file__)
+dst_path = os.path.join(src_path, "../media/anim.gif")
 shutil.move(src_path, dst_path)
