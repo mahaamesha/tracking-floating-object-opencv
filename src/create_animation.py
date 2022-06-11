@@ -53,13 +53,8 @@ option = 1
 
 if option == 1:
     writergif = animation.PillowWriter(fps=60)
-    f_name = "anim.gif"
+    f_name = "./media/anim.gif"
+    os.remove(f_name)
     anim.save(f_name, writer=writergif)
-
-    # move gif file in workspace_folder to this current_folder
-    src_path = os.getcwd()
-    src_path = os.path.join(src_path, f_name)
-    dst_path = os.path.join(src_path, "../media/")
-    shutil.move(src_path, dst_path)
 
 plt.show()
