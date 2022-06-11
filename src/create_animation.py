@@ -37,7 +37,7 @@ def animate(i):
 	
     # y for wave equation that move to rigth
     y = f(x, i)
-    #floating_obj(y_value=0)
+    floating_obj(y_value=0)
 		
     line.set_data(x, y)
     return line,
@@ -47,14 +47,11 @@ anim = animation.FuncAnimation(fig, animate, init_func=init,
                                frames=200, interval=10, blit=True)
 
 
-
-# modification from Sparisoma Viridi 2022-03-29
-option = 1
-
-if option == 1:
+isSave = 0
+if isSave:
     writergif = animation.PillowWriter(fps=60)
-    f_name = "./media/anim.gif"
-    os.remove(f_name)
-    anim.save(f_name, writer=writergif)
+    fpath = "./media/anim.gif"
+    os.remove(fpath)
+    anim.save(fpath, writer=writergif)
 
 plt.show()
