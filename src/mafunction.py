@@ -54,6 +54,25 @@ def background_substractor(mode="MOG2/KNN"):
     return backSub
 
 
+def processing_frame(frame):
+    # convert original img to gray img
+    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+
+    # bluring to removes noise
+    imgaus = cv.GaussianBlur(gray, (5,5), 0)
+
+
+    # finding contours
+    cnts, hierarchy = cv.findContours(imgaus, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    for cnt in cnts:
+        cv.drawContours(frame, cnt, -1, (0,255,0), 3)
+    print("Contours:", len(cnts))
+
+    cv.imshow("frame", frame)
+    cv.imshow("gray", gray)
+    cv.imshow("imgaus", imgaus)
+
+
 # capture video from camera 0
 # video saved in "media/recording.mp4"
 def capture_video(isSave=0):
@@ -111,22 +130,16 @@ def play_video(file_path="media/media1.mp4"):
             break
 
         # resize
-        set_size_video(cap, (640,480))
+        #frame = resize_frame(frame, (640,480))
 
         # playback video by reset the frame_counter
         cap, frame_counter = reverse_playback(cap, frame_counter)
         
-        # process the image
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-
-        cnts, hierarchy = cv.findContours(gray, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-        for cnt in cnts:
-            cv.drawContours(frame, cnt, -1, (0,255,0), 3)
-        print(len(cnts))
+        # image processing for every frame
+        processing_frame(frame)
 
         # show the frame
-        cv.imshow("frame", frame)
-        cv.imshow("gray", gray)
+        # cv.imshow("frame", frame)
 
         # exit the window
         if (cv.waitKey(1) == ord('q')):
