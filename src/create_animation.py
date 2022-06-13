@@ -1,12 +1,12 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import animation
-import os   # to get path
-import shutil   # to move file.gif
+import os
+import sys
 
 # First set up the figure, the axis, and the plot element we want to animate
 fig = plt.figure()
-ax = plt.axes(xlim=(0, 8), ylim=(-5, 5))
+ax = plt.axes(xlim=(0, 8), ylim=(-4, 4))
 line, = ax.plot([], [], lw=2)
 
 # initialization function: plot the background of each frame
@@ -23,21 +23,21 @@ def floating_obj(y_value):
     # draw circle
     xc = 4
     yc = y_value
-    r = 1
+    r = 1/2
     circle = plt.Circle(
         (xc, yc), radius=r,
-        fc='#ccf',
-        lw=2, ls='dashed', color='k'
+        fc='gray',
+        lw=2
     )
     plt.gca().add_patch(circle)
 
 # animation function.  This is called sequentially
 def animate(i):
-    x = np.linspace(0, 8, 1000)
+    x = np.linspace(0, 8, 50)
 	
     # y for wave equation that move to rigth
     y = f(x, i)
-    floating_obj(y_value=0)
+    floating_obj(y_value=y[i])
 		
     line.set_data(x, y)
     return line,
@@ -49,9 +49,11 @@ anim = animation.FuncAnimation(fig, animate, init_func=init,
 
 isSave = 0
 if isSave:
-    writergif = animation.PillowWriter(fps=60)
+    writergif = animation.PillowWriter(fps=30)
     fpath = "./media/anim.gif"
-    os.remove(fpath)
+    try: os.remove(fpath)
+    except: pass
     anim.save(fpath, writer=writergif)
 
 plt.show()
+sys.exit("Done")

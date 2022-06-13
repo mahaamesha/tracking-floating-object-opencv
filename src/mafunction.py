@@ -1,6 +1,8 @@
 from time import sleep
 import cv2 as cv
 import sys
+import numpy as np
+from imutils import grab_contours
 
 
 def show_frame(winname, img, isSave=0):
@@ -59,11 +61,12 @@ def background_substractor(mode="MOG2/KNN"):
 
 
 def processing_frame(frame):
-    # convert original img to gray img
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    # convert original img as gray/hsv img
+    cvt = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    cvt = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
     # bluring to removes noise
-    imgaus = cv.GaussianBlur(gray, (5,5), 0)
+    imgaus = cv.GaussianBlur(cvt, (5,5), 0)
 
     # Set BACKGROUND to Black and OBJECT to White
     ret, thresh = cv.threshold(imgaus, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)
@@ -76,11 +79,60 @@ def processing_frame(frame):
     print("Contours:", len(cnts))
 
     cv.imshow("frame", frame)
-    cv.imshow("gray", gray)
+    # cv.imshow("gray", gray)
     cv.imshow("imgaus", imgaus)
     cv.imshow("thresh", thresh)
 
     return frame
+
+
+def processing_frame2(frame):
+    hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+
+    imgaus = cv.GaussianBlur(hsv, (11,11), 0)
+
+    # extract only red color in certain range
+    lower_color = np.array([0, 150, 64])
+    upper_color = np.array([30, 255, 255])
+    mask = cv.inRange(hsv, lower_color, upper_color)
+
+    kernel = np.ones( (3,3), np.uint8 )
+    erodila = cv.erode(mask, kernel, iterations=5)
+    erodila = cv.dilate(erodila, kernel, iterations=20)
+
+    edge = cv.Canny(erodila, 0, 255)
+
+    res = cv.bitwise_and(frame, frame, mask=erodila)
+
+    cnts = cv.findContours(erodila, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    cnts = grab_contours(cnts)
+    
+    contoured = frame.copy()
+    contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 2)
+    
+    final = contoured.copy()
+
+    print("Contours:", len(cnts))
+
+
+    # gray = cvtColor(frame, cv.COLOR_BGR2GRAY)
+    # ret, thresh = cv.threshold(gray, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)
+
+    # f.show_frame("img", frame)
+    # # f.show_frame("gray", gray)
+    # f.show_frame("hsv", hsv)
+    # f.show_frame("imgaus", imgaus)
+    # f.show_frame("mask", mask)
+    # f.show_frame("erodila", erodila)
+    # f.show_frame("edge", edge)
+    # f.show_frame("res", res)
+    # f.show_frame("final", final)
+    # # f.show_frame("thresh", thresh)
+
+    # cv.waitKey(0)
+
+    return final
+
 
 
 # capture video from camera 0
@@ -146,10 +198,10 @@ def play_video(file_path="media/media1.mp4"):
         cap, frame_counter = reverse_playback(cap, frame_counter)
         
         # image processing for every frame
-        frame = processing_frame(frame)
+        frame = processing_frame2(frame)
 
         # show the frame
-        # cv.imshow("frame", frame)
+        cv.imshow("frame", frame)
 
         # exit the window
         if (cv.waitKey(1) == ord('q')):
