@@ -43,21 +43,77 @@ def reverse_playback(cap, frame_counter):
     return cap, frame_counter
 
 
-def get_fps(cap):
+def get_cap_fps(cap):
     fps = cap.get(cv.CAP_PROP_FPS)
     return fps
 
 
+def get_cap_size(cap):
+    width = cap.get(cv.CAP_PROP_FRAME_WIDTH)
+    heigth = cap.get(cv.CAP_PROP_FRAME_HEIGHT)
+    return width, heigth
+
+
+def get_frame_shape(frame):
+    height, width, channels = frame.shape
+    return width, height, channels
+
+
+def crop_frame(frame):
+    
+    return frame
+
+
+def get_lower_upper_hsv(color=[30,200,127], err_range=50, v_range=50):
+    lower_color = []
+    upper_color = []
+    
+    for i in range(3):
+        # set wide error range only for V value
+        if i == 2: err_range = v_range
+
+        # initialize lower upper
+        lower_i = color[i] - err_range
+        upper_i = color[i] + err_range
+        
+        # ensure lower_i not negative
+        if lower_i < 0: lower_i = 0
+
+        # ensure upper_i is in range
+        # H: [0,179], S: [0,255], V: [0,255]
+        if i == 0:      # check H
+            if upper_i > 179: upper_i = 179
+        else:       # check S and V
+            if upper_i > 255: upper_i = 255
+
+        # append the value_i to the suitable array
+        lower_color.append(lower_i)
+        upper_color.append(upper_i)
+
+    # convert to numpy array: [ H S V]
+    lower_color = np.array(lower_color)
+    upper_color = np.array(upper_color)
+
+    return lower_color, upper_color
+
+
 # use background substractor to detect object
-def background_substractor(mode="MOG2/KNN"):
-    if (mode == "MOG2"):
+def background_substractor(method="MOG2/KNN"):
+    if (method == "MOG2"):
         backSub = cv.createBackgroundSubtractorMOG2()
-    elif (mode == "KNN"):
+    elif (method == "KNN"):
         backSub = cv.createBackgroundSubtractorKNN()
     else:
         sys.exit("Error: choose mode 'MOG2' or 'KNN'")
     
     return backSub
+
+
+# apply background substractor on certain frame to detect object
+def apply_background_substractor(frame, method="MOG2/KNN"):
+    backSub = background_substractor(method)
+    fgMask = backSub.apply(frame)
+    return fgMask
 
 
 def processing_frame(frame):
@@ -92,13 +148,13 @@ def processing_frame2(frame):
     imgaus = cv.GaussianBlur(hsv, (11,11), 0)
 
     # extract only red color in certain range
-    lower_color = np.array([0, 150, 64])
-    upper_color = np.array([30, 255, 255])
-    mask = cv.inRange(hsv, lower_color, upper_color)
+    lower_hsv, upper_hsv = get_lower_upper_hsv(color=[30,200,127], err_range=50)
+    mask = cv.inRange(imgaus, lower_hsv, upper_hsv)
 
     kernel = np.ones( (3,3), np.uint8 )
     erodila = cv.erode(mask, kernel, iterations=5)
     erodila = cv.dilate(erodila, kernel, iterations=20)
+    erodila = cv.erode(erodila, kernel, iterations=15)
 
     edge = cv.Canny(erodila, 0, 255)
 
@@ -133,6 +189,36 @@ def processing_frame2(frame):
 
     return final
 
+
+def processing_frame3(frame):
+    hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+
+    imgaus = cv.GaussianBlur(hsv, (5,5), 0)
+
+    # extract only red color in certain range
+    lower_hsv, upper_hsv = get_lower_upper_hsv(color=[179,200,127], err_range=50, v_range=50)
+    mask = cv.inRange(imgaus, lower_hsv, upper_hsv)
+
+    kernel = np.ones( (3,3), np.uint8 )
+    erodila = cv.erode(mask, kernel, iterations=2)
+    erodila = cv.dilate(erodila, kernel, iterations=20)
+    erodila = cv.erode(erodila, kernel, iterations=15)
+
+    edge = cv.Canny(erodila, 0, 255)
+
+    res = cv.bitwise_and(frame, frame, mask=erodila)
+
+    cnts = cv.findContours(erodila, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    cnts = grab_contours(cnts)
+    
+    contoured = frame.copy()
+    contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 2)
+    
+    final = contoured.copy()
+
+    print("Contours:", len(cnts))
+
+    return final
 
 
 # capture video from camera 0
@@ -174,7 +260,7 @@ def capture_video(isSave=0):
 
 
 # play video from file
-def play_video(file_path="media/media1.mp4"):
+def play_video(file_path="media/media1.mp4", process_func=None):
     cap = cv.VideoCapture(file_path)
 
     if (not cap.isOpened()):
@@ -198,7 +284,7 @@ def play_video(file_path="media/media1.mp4"):
         cap, frame_counter = reverse_playback(cap, frame_counter)
         
         # image processing for every frame
-        frame = processing_frame2(frame)
+        frame = process_func(frame)
 
         # show the frame
         cv.imshow("frame", frame)
