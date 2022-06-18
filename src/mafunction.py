@@ -1,8 +1,9 @@
-from time import sleep
 import cv2 as cv
 import sys
 import numpy as np
 from imutils import grab_contours
+
+import src.json_function as fjson
 
 
 def show_frame(winname, img, isSave=0):
@@ -102,6 +103,26 @@ def put_roi2frame(frame, contoured, mask_roi):
     final = cv.bitwise_or(img_bg, contoured)
 
     return final
+
+
+def put_text2frame(frame):
+    text = ""
+    org = (20, 30)
+    fontFace = cv.FONT_HERSHEY_SIMPLEX
+    fontScale = 0.5
+    color = (0,255,0)
+    thickness = 1
+
+    data = fjson.read_filejson(file_path="tmp/frame_text.json")
+
+    count = 0   # to count the number of line(s)
+    for key in data.keys():
+        text = str("%s: %s" %(key, data[key]))
+        org = (org[0], org[1]+20*count)     # 20 is distance to new line
+        cv.putText(frame, text, org, fontFace, fontScale, color, thickness, cv.LINE_AA)
+        count += 1
+
+    return frame
 
 
 def get_lower_upper_hsv(color=[30,200,127], err_range=50, v_range=50):
@@ -262,8 +283,6 @@ def processing_frame3(frame):
     # now add it to FRAME to get full size colored image
     final = put_roi2frame(frame, contoured, mask_roi)
 
-    # add text: fps, contours, etc
-
     return final
 
 
@@ -346,6 +365,9 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
         
         # image processing for every frame
         frame = process_func(frame)
+        # adding text: fps, contours, etc
+        
+        frame = put_text2frame(frame)
 
         # write final frame
         if isSave: out.write(frame)
