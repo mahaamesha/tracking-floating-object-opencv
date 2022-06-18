@@ -49,8 +49,8 @@ def get_cap_fps(cap):
 
 
 def get_cap_size(cap):
-    width = cap.get(cv.CAP_PROP_FRAME_WIDTH)
-    heigth = cap.get(cv.CAP_PROP_FRAME_HEIGHT)
+    width = int( cap.get(cv.CAP_PROP_FRAME_WIDTH) )
+    heigth = int( cap.get(cv.CAP_PROP_FRAME_HEIGHT) )
     return width, heigth
 
 
@@ -163,10 +163,7 @@ def processing_frame2(frame):
     cnts = cv.findContours(erodila, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     cnts = grab_contours(cnts)
     
-    contoured = frame.copy()
     contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 2)
-    
-    final = contoured.copy()
 
     print("Contours:", len(cnts))
 
@@ -187,7 +184,7 @@ def processing_frame2(frame):
 
     # cv.waitKey(0)
 
-    return final
+    return frame
 
 
 def processing_frame3(frame):
@@ -211,14 +208,21 @@ def processing_frame3(frame):
     cnts = cv.findContours(erodila, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     cnts = grab_contours(cnts)
     
-    contoured = frame.copy()
-    contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 2)
-    
-    final = contoured.copy()
+    # contoured = frame.copy()
+    contoured = cv.drawContours(frame, cnts, -1, (0,255,0), 2)
 
     print("Contours:", len(cnts))
 
-    return final
+    return frame
+
+
+def pass_processing_frame(frame):
+    return frame
+
+
+# add text: fps, contours, center of contours
+def put_text():
+
 
 
 # capture video from camera 0
@@ -229,7 +233,8 @@ def capture_video(isSave=0):
     # for saving, I need define codec and create VideoWriter object
     if isSave:
         fourcc = cv.VideoWriter_fourcc(*'XVID')
-        out = cv.VideoWriter("media/recording.mp4", fourcc, 20.0, (640,480))
+        cap_width, cap_heigth = get_cap_size(cap)
+        out = cv.VideoWriter("media/recording.mp4", fourcc, 20.0, (cap_width,cap_heigth))
 
     if (not cap.isOpened()):
         print("Error: Can't open camera")
@@ -260,8 +265,14 @@ def capture_video(isSave=0):
 
 
 # play video from file
-def play_video(file_path="media/media1.mp4", process_func=None):
+def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame, isSave=0, isLoop=1):
     cap = cv.VideoCapture(file_path)
+    
+    # for saving, I need define codec and create VideoWriter object
+    if isSave:
+        fourcc = cv.VideoWriter_fourcc(*'XVID')
+        cap_width, cap_heigth = get_cap_size(cap)
+        out = cv.VideoWriter("media/recording.mp4", fourcc, 20.0, (cap_width,cap_heigth))
 
     if (not cap.isOpened()):
         print("Error: Can't open camera")
@@ -276,15 +287,22 @@ def play_video(file_path="media/media1.mp4", process_func=None):
         if (not ret):
             print("Can't receive frame (stream end?). Exiting ...")
             break
-
-        # resize
-        frame = resize_frame(frame, (640,480))
+        
+        # resize. if isSave, frame size must be same with cap size
+        if isSave and file_path != 0:
+            frame = resize_frame(frame, (cap_width,cap_heigth))
+        else:
+            frame = resize_frame(frame, (640,480))
 
         # playback video by reset the frame_counter
-        cap, frame_counter = reverse_playback(cap, frame_counter)
+        if isLoop:
+            cap, frame_counter = reverse_playback(cap, frame_counter)
         
         # image processing for every frame
         frame = process_func(frame)
+
+        # write final frame
+        if isSave: out.write(frame)
 
         # show the frame
         cv.imshow("frame", frame)
@@ -294,4 +312,5 @@ def play_video(file_path="media/media1.mp4", process_func=None):
             break
     
     cap.release()
+    if isSave: out.release()
     cv.destroyAllWindows()
