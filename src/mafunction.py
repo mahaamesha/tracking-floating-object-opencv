@@ -23,9 +23,10 @@ def read_img(file_path="media/img1.jpg"):
 
 
 # set size video
-def set_frame_size(cap, size=(640, 480)):
+def set_cap_size(cap, size=(640, 480)):
     cap.set(cv.CAP_PROP_FRAME_WIDTH, size[0])
     cap.set(cv.CAP_PROP_FRAME_HEIGHT, size[1])
+    return cap
 
 
 def resize_frame(frame, size=(640, 480)):
@@ -46,7 +47,8 @@ def reverse_playback(cap, frame_counter):
 
 def get_cap_fps(cap):
     fps = cap.get(cv.CAP_PROP_FPS)
-    return fps
+    fps = "{:.2f}".format(fps)
+    return float(fps)
 
 
 def get_cap_size(cap):
@@ -276,8 +278,10 @@ def processing_frame3(frame):
     cnts = grab_contours(cnts)
     
     contoured = roi.copy()
-    contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 2)
+    contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 3)
+    
     print("Contours:", len(cnts))
+    fjson.write_keyvalue(file_path="tmp/frame_text.json", key="contours", value=len(cnts))
 
     # CONTOURED size is based on ROI size
     # now add it to FRAME to get full size colored image
@@ -366,7 +370,8 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
         # image processing for every frame
         frame = process_func(frame)
         # adding text: fps, contours, etc
-        
+        fps = get_cap_fps(cap)
+        fjson.write_keyvalue(file_path="tmp/frame_text.json", key="fps", value=fps)
         frame = put_text2frame(frame)
 
         # write final frame
