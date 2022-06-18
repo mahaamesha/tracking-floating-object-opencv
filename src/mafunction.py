@@ -59,9 +59,37 @@ def get_frame_shape(frame):
     return width, height, channels
 
 
-def crop_frame(frame):
+# crop frame
+# tips: use `w, h, c = get_frame_shape(frame)` before
+def crop_frame(frame, range_row=[0,0], range_col=[0,0]):
+    start_row = int( range_row[0] )     # row : heigth
+    end_row = int( range_row[1] )
+    start_col = int( range_col[0] )     # col : width
+    end_col = int( range_col[1] )
+
+    cropped = frame[start_row:end_row, start_col:end_col]
+    return cropped
+
+
+# access specific ROI (region of interest) in frame
+# tips: use `w, h, c = get_frame_shape(frame)` before
+def region_of_interest(frame, range_row=[0,0], range_col=[0,0]):
+    start_row = int( range_row[0] )     # row : heigth
+    end_row = int( range_row[1] )
+    start_col = int( range_col[0] )     # col : width
+    end_col = int( range_col[1] )
+
+    point1 = (start_col, start_row)
+    point2 = (end_col, end_row)
     
-    return frame
+    # blank, same size with frame
+    blank = np.zeros(frame.shape[:2], dtype="uint8")
+    # create masking with white color
+    mask = cv.rectangle(blank, pt1=point1, pt2=point2, color=255, thickness=-1)
+    # get only the region of interest
+    roi = cv.bitwise_and(frame, frame, mask=mask)
+
+    return roi
 
 
 def get_lower_upper_hsv(color=[30,200,127], err_range=50, v_range=50):
@@ -188,7 +216,11 @@ def processing_frame2(frame):
 
 
 def processing_frame3(frame):
-    hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+    # look at ROI (region of interest) only
+    w, h, c = get_frame_shape(frame)    # my laptop screen: 1920 x 1080
+    roi = region_of_interest(frame, range_row=[h/3,h/1.5], range_col=[0,w/1.1])
+
+    hsv = cv.cvtColor(roi, cv.COLOR_BGR2HSV)
 
     imgaus = cv.GaussianBlur(hsv, (5,5), 0)
 
@@ -203,17 +235,18 @@ def processing_frame3(frame):
 
     edge = cv.Canny(erodila, 0, 255)
 
-    res = cv.bitwise_and(frame, frame, mask=erodila)
-
+    res = cv.bitwise_and(roi, roi, mask=erodila)
+    
     cnts = cv.findContours(erodila, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     cnts = grab_contours(cnts)
     
-    # contoured = frame.copy()
-    contoured = cv.drawContours(frame, cnts, -1, (0,255,0), 2)
-
+    contoured = roi.copy()
+    contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 2)
     print("Contours:", len(cnts))
 
-    return frame
+    final = contoured
+
+    return final
 
 
 def pass_processing_frame(frame):
@@ -222,8 +255,8 @@ def pass_processing_frame(frame):
 
 # add text: fps, contours, center of contours
 def put_text():
-
-
+    pass
+    
 
 # capture video from camera 0
 # video saved in "media/recording.mp4"
@@ -289,7 +322,7 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
             break
         
         # resize. if isSave, frame size must be same with cap size
-        if isSave and file_path != 0:
+        if isSave and (file_path != 0):
             frame = resize_frame(frame, (cap_width,cap_heigth))
         else:
             frame = resize_frame(frame, (640,480))
