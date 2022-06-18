@@ -107,20 +107,21 @@ def put_roi2frame(frame, contoured, mask_roi):
     return final
 
 
-def put_text2frame(frame):
+def put_text2frame(frame, factor=1):
     text = ""
-    org = (20, 30)
+    org = (20*factor, 30*factor)
+    dist = 20*factor
     fontFace = cv.FONT_HERSHEY_SIMPLEX
-    fontScale = 0.5
+    fontScale = 0.5*factor
     color = (0,255,0)
-    thickness = 1
+    thickness = 1*factor
 
     data = fjson.read_filejson(file_path="tmp/frame_text.json")
 
     count = 0   # to count the number of line(s)
     for key in data.keys():
         text = str("%s: %s" %(key, data[key]))
-        org = (org[0], org[1]+20*count)     # 20 is distance to new line
+        org = (org[0], org[1]+dist*count)     # 20 is distance to new line
         cv.putText(frame, text, org, fontFace, fontScale, color, thickness, cv.LINE_AA)
         count += 1
 
@@ -278,7 +279,7 @@ def processing_frame3(frame):
     cnts = grab_contours(cnts)
     
     contoured = roi.copy()
-    contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 3)
+    contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 2)
     
     print("Contours:", len(cnts))
     fjson.write_keyvalue(file_path="tmp/frame_text.json", key="contours", value=len(cnts))
@@ -336,11 +337,11 @@ def capture_video(isSave=0):
 # play video from file
 def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame, isSave=0, isLoop=1):
     cap = cv.VideoCapture(file_path)
+    cap_width, cap_heigth = get_cap_size(cap)
     
     # for saving, I need define codec and create VideoWriter object
     if isSave:
         fourcc = cv.VideoWriter_fourcc(*'XVID')
-        cap_width, cap_heigth = get_cap_size(cap)
         out = cv.VideoWriter("media/recording.mp4", fourcc, 20.0, (cap_width,cap_heigth))
 
     if (not cap.isOpened()):
@@ -361,7 +362,7 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
         if isSave and (file_path != 0):
             frame = resize_frame(frame, (cap_width,cap_heigth))
         else:
-            frame = resize_frame(frame, (640,480))
+            frame = resize_frame(frame, (cap_width//2,cap_heigth//2))
 
         # playback video by reset the frame_counter
         if isLoop:
@@ -372,7 +373,7 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
         # adding text: fps, contours, etc
         fps = get_cap_fps(cap)
         fjson.write_keyvalue(file_path="tmp/frame_text.json", key="fps", value=fps)
-        frame = put_text2frame(frame)
+        frame = put_text2frame(frame, factor=2)
 
         # write final frame
         if isSave: out.write(frame)
