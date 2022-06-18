@@ -89,7 +89,19 @@ def region_of_interest(frame, range_row=[0,0], range_col=[0,0]):
     # get only the region of interest
     roi = cv.bitwise_and(frame, frame, mask=mask)
 
-    return roi
+    return roi, mask
+
+
+# ROI in FRAME need to be black first, then adding it
+def put_roi2frame(frame, contoured, mask_roi):
+    # black-out the ROI region on FRAME. So, that area is zero (black=0)
+    mask_roi_inv = cv.bitwise_not(mask_roi)
+    img_bg = cv.bitwise_and(frame, frame, mask=mask_roi_inv)
+    
+    # add IMG_BG and IMG_FG
+    final = cv.bitwise_or(img_bg, contoured)
+
+    return final
 
 
 def get_lower_upper_hsv(color=[30,200,127], err_range=50, v_range=50):
@@ -218,7 +230,7 @@ def processing_frame2(frame):
 def processing_frame3(frame):
     # look at ROI (region of interest) only
     w, h, c = get_frame_shape(frame)    # my laptop screen: 1920 x 1080
-    roi = region_of_interest(frame, range_row=[h/3,h/1.5], range_col=[0,w/1.1])
+    roi, mask_roi = region_of_interest(frame, range_row=[h/3,h/1.5], range_col=[0,w/1.1])
 
     hsv = cv.cvtColor(roi, cv.COLOR_BGR2HSV)
 
@@ -228,6 +240,7 @@ def processing_frame3(frame):
     lower_hsv, upper_hsv = get_lower_upper_hsv(color=[179,200,127], err_range=50, v_range=50)
     mask = cv.inRange(imgaus, lower_hsv, upper_hsv)
 
+    # remove noise & strengthen the region
     kernel = np.ones( (3,3), np.uint8 )
     erodila = cv.erode(mask, kernel, iterations=2)
     erodila = cv.dilate(erodila, kernel, iterations=20)
@@ -237,6 +250,7 @@ def processing_frame3(frame):
 
     res = cv.bitwise_and(roi, roi, mask=erodila)
     
+    # find & draw the contours
     cnts = cv.findContours(erodila, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     cnts = grab_contours(cnts)
     
@@ -244,18 +258,17 @@ def processing_frame3(frame):
     contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 2)
     print("Contours:", len(cnts))
 
-    final = contoured
+    # CONTOURED size is based on ROI size
+    # now add it to FRAME to get full size colored image
+    final = put_roi2frame(frame, contoured, mask_roi)
+
+    # add text: fps, contours, etc
 
     return final
 
 
 def pass_processing_frame(frame):
     return frame
-
-
-# add text: fps, contours, center of contours
-def put_text():
-    pass
     
 
 # capture video from camera 0
