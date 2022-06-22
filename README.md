@@ -1,4 +1,4 @@
-# Project Title
+# tracking-floating-object
 
 ## Table of Contents
 
@@ -9,7 +9,8 @@
 
 ## About <a name = "about"></a>
 
-Write about 1-2 paragraphs describing the purpose of your project.
+The project purpose is to tracking single/multiple floating objects on surface of water wave. The program will run image processing in real-time to get center of mass point. Some physical parameters will be calculated granted, such as centroid, speed vector, and/or others. In future, the result will be displayed using projector in real-time.
+
 
 ## Getting Started <a name = "getting_started"></a>
 
