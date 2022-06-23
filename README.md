@@ -5,7 +5,7 @@
 - [About](#about)
 - [Getting Started](#getting_started)
 - [Usage](#usage)
-- [Contributing](../CONTRIBUTING.md)
+- [Notes](#notes)
 
 ## About <a name = "about"></a>
 
@@ -42,6 +42,6 @@ until finished
 
 End with an example of getting some data out of the system or using it for a little demo.
 
-## Usage <a name = "usage"></a>
+## Notes <a name = "notes"></a>
 
-Add notes about how to use the system.
+- Flowchart for single frame processing. Check here.
