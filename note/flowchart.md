@@ -31,7 +31,7 @@
         D5{ isSave? };
         P5[ Write Frame to Video File ];
         P6[ Show Frame ];
-        D6[/ Input 'q'? /];
+        D6{ Input 'q'? };
         P7[ Release Video ];
         P8[ Destroy All Windows ];
         B --> I1;
