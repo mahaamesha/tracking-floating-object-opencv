@@ -20,8 +20,8 @@
         D2{ Can Open Captured Video? };
         O1[/ Exit Message /];
         D3{ While True };
-        I3[/ Read Frame-by-Frame /];
-        P3[ Resize Frame ];
+        I3[[ Read Frame-by-Frame ]];
+        P3[[ Resize Frame ]];
         D4{ isLoop? };
         P4[ Reset frame_counter ];
         F1[[ Run process_func ]];
@@ -43,7 +43,8 @@
         D2 -- N --> O1 --> E;
         D3 -- Y --> I3;
         D3 -- N --> P6;
-        I3 --> P3 --> D4;
+        I3 -- Y --> P3 --> D4;
+        I3 -- N --> E;
         D4 -- Y --> P4 --> F1;
         D4 -- N --> F1;
         F1 --> F2;
