@@ -7,6 +7,9 @@ import sys
 working_path = os.path.dirname(__file__)
 project_path = os.path.join(working_path, "../")
 
+
+# GENERAL FUNCTION
+
 def read_filejson(file_path="tmp/file.json"):
     try:
         path = os.path.join(project_path, file_path)
@@ -26,22 +29,11 @@ def write_obj_to_filejson(file_path="tmp/file.json", obj={}):
     with open(path, "a"):
         pass
     
-    with open(path, "w") as f:
-        json.dump(obj, f, indent=4)
-
-    if (obj == {}): sys.exit("Exited: only write empty obj to %s" %file_path)
-
-
-# modify the OBJ, if there are many variable will be saved later
-def init_frametextjson(obj={}):
-    file_path = "tmp/frame_text.json"
-    path = os.path.join(project_path, file_path)
-    
-    # create file if it's not already
-    with open(path, "a"):
-        pass
-    
-    if (obj=={}): obj = {"fps": None, "contours": None}
+    if (obj == {}):
+        while True:
+            ans = input("Write empty obj to %s? (y/n) " %file_path)
+            if (ans == "y"): break
+            elif (ans == "n"): sys.exit("Canceled")
 
     with open(path, "w") as f:
         json.dump(obj, f, indent=4)
@@ -63,8 +55,14 @@ def write_keyvalue(file_path="tmp/file.json", key="keyname", value=None):
         json.dump(data, f, indent=4)
 
 
+# (END) GENERAL FUNCTION
+
+
+
 
 if __name__ == "__main__":
-    init_frametextjson(obj={"fps": None, "contours": None})
+    # initialization format of some file.json
+    write_obj_to_filejson(file_path="tmp/frame_text.json", obj={"fps": None, "contours": None})
+    write_obj_to_filejson(file_path="tmp/track_centroid.json", obj={})
     
     # write_keyvalue(file_path="tmp/frame_text.json", key="fps", value=24)

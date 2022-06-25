@@ -128,6 +128,28 @@ def put_text2frame(frame, factor=1):
     return frame
 
 
+# get centroid of every detected cnt, return it as array
+def get_centroid(cnts):
+    arr = []
+    for cnt in cnts:
+        M = cv.moments(cnt)
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+
+        arr.append( (cx, cy) )
+    
+    return arr
+
+
+# draw point for every centroid in centroid_array
+def draw_centroid(frame, arr):
+    # access pixel and change the color
+    for (cx, cy) in arr:
+        cv.circle(frame, center=(cx,cy), radius=3, color=(0,255,0), thickness=-1)
+        
+    return frame
+
+
 def get_lower_upper_hsv(color=[30,200,127], err_range=50, v_range=50):
     lower_color = []
     upper_color = []
@@ -282,6 +304,12 @@ def processing_frame3(frame):
     contoured = cv.drawContours(contoured, cnts, -1, (0,255,0), 2)
     
     print("Contours:", len(cnts))
+
+    # get centroid of every cnt
+    centroid_arr = get_centroid(cnts)
+    contoured = draw_centroid(contoured, centroid_arr)
+    
+    # write num of contours to json file
     fjson.write_keyvalue(file_path="tmp/frame_text.json", key="contours", value=len(cnts))
 
     # CONTOURED size is based on ROI size
