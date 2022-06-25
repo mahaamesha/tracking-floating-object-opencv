@@ -378,6 +378,9 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
         print("Error: Can't open camera")
         exit()
 
+    # initialize tmp files
+    fjson.init_tmp_files()
+
     frame_counter = 0       # used in reverse_playback()
     while True:
         # capture frame-by-frame
