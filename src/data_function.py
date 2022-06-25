@@ -40,6 +40,7 @@ def plot_centroid_data(obj):
     
     fig.tight_layout()
     plt.show()
+    fig.savefig("media/centroid_plot.jpg")
 
 
 if __name__ == "__main__":
