@@ -35,10 +35,10 @@ def plot_centroid_data(obj):
         ax.plot(x, y)
         ax.set_ylim(max(y), min(y))     # reverse y axis
         ax.set(xlabel="x (px)", ylabel="y (px)")
-        ax.label_outer()        # Hide x labels and tick labels for top plots and y ticks for right plots.
+        # ax.label_outer()        # Hide x labels and tick labels for top plots and y ticks for right plots.
         ax.grid(True)
 
-    axs_flat[1].set_xlim(400, 500)
+    axs_flat[1].set_xlim(max(x)//3, max(x)//1.5)
     
     fig.tight_layout()
     plt.show()
