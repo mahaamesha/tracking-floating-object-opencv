@@ -1,7 +1,7 @@
 import cv2 as cv
 import sys
 import numpy as np
-from imutils import grab_contours
+from imutils import grab_contours, resize
 
 import src.json_function as fjson
 
@@ -31,6 +31,11 @@ def set_cap_size(cap, size=(640, 480)):
 
 def resize_frame(frame, size=(640, 480)):
     frame = cv.resize(frame, (size[0], size[1]))
+    return frame
+
+
+def resize_frame_imutils(frame, width=640):
+    frame = resize(frame, width)        # imutils.resize()
     return frame
 
 
