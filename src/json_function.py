@@ -39,7 +39,13 @@ def write_obj_to_filejson(file_path="tmp/file.json", obj={}):
         json.dump(obj, f, indent=4)
 
 
-# i use this to write FPS, CONTOURS, ets in frame_text.json
+# similar with write_obj_to_filejson, but only for clear file purpose
+def clear_filejson(path):
+    with open(path, "w") as f:
+        json.dump({}, f, indent=4)
+        pass
+
+
 # format json file: {"key1":value1, "key2":value2}
 def write_keyvalue(file_path="tmp/file.json", key="keyname", value=None):
     path = os.path.join(project_path, file_path)
@@ -59,10 +65,37 @@ def write_keyvalue(file_path="tmp/file.json", key="keyname", value=None):
 
 
 
+# SPECIFIC FUNCTION
+
+
+def write_trackcentroidjson(centroid_arr=[]):
+    file_path = "tmp/track_centroid.json"
+    path = os.path.join(project_path, file_path)
+
+    with open(path, "r") as f:
+        data = json.load(f)
+        
+        # add new KEY if detect new cnt
+        if len(data) < len(centroid_arr):
+            new_id = len(centroid_arr)
+            data["id_%s" %(new_id)] = []
+
+        # append centroid to suitable KEY
+        for n in range( len(centroid_arr) ):
+            data["id_%s" %(n+1)].append(centroid_arr[n])
+    
+    with open(path, "w") as f:
+        json.dump(data, f, indent=4)
+
+
+# (END) SPECIFIC FUNCITION
+
+
 
 if __name__ == "__main__":
     # initialization format of some file.json
     write_obj_to_filejson(file_path="tmp/frame_text.json", obj={"fps": None, "contours": None})
-    write_obj_to_filejson(file_path="tmp/track_centroid.json", obj={})
+    write_obj_to_filejson(file_path="tmp/track_centroid.json", obj={"id_1": []})
+    # write_obj_to_filejson(file_path="tmp/track_centroid.json", obj={})
     
     # write_keyvalue(file_path="tmp/frame_text.json", key="fps", value=24)

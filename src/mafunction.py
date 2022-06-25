@@ -146,7 +146,7 @@ def draw_centroid(frame, arr):
     # access pixel and change the color
     for (cx, cy) in arr:
         cv.circle(frame, center=(cx,cy), radius=3, color=(0,255,0), thickness=-1)
-        
+
     return frame
 
 
@@ -311,6 +311,8 @@ def processing_frame3(frame):
     
     # write num of contours to json file
     fjson.write_keyvalue(file_path="tmp/frame_text.json", key="contours", value=len(cnts))
+    # write every centroid of detected cnt to json file
+    fjson.write_trackcentroidjson(centroid_arr=centroid_arr)
 
     # CONTOURED size is based on ROI size
     # now add it to FRAME to get full size colored image
