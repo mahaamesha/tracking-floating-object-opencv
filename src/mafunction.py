@@ -141,11 +141,24 @@ def get_centroid(cnts):
     return arr
 
 
+def put_text_centroid(frame, xc, yc, factor=1):
+    text = "(%s, %s)" %(xc, yc)
+    dist = 20*factor
+    org = (xc-dist-dist, yc-dist)
+    fontFace = cv.FONT_HERSHEY_SIMPLEX
+    fontScale = 0.5*factor
+    color = (0,255,0)
+    thickness = 1*factor
+    
+    cv.putText(frame, text, org, fontFace, fontScale, color, thickness, cv.LINE_AA)
+
+
 # draw point for every centroid in centroid_array
 def draw_centroid(frame, arr):
     # access pixel and change the color
-    for (cx, cy) in arr:
-        cv.circle(frame, center=(cx,cy), radius=3, color=(0,255,0), thickness=-1)
+    for (xc, yc) in arr:
+        cv.circle(frame, center=(xc, yc), radius=3, color=(0,255,0), thickness=-1)
+        put_text_centroid(frame, xc, yc, factor=2)
 
     return frame
 
