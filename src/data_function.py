@@ -5,9 +5,6 @@ import pandas as pd
 
 from json_function import read_filejson
 
-working_path = os.path.dirname(__file__)
-project_path = os.path.join(working_path, "../")
-
 
 # return dataframe and dict
 def build_obj():
