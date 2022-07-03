@@ -190,6 +190,21 @@ def get_theta(pt1=[], pt2=[]):
     return theta
 
 
+# find another point inline with pt1, pt2
+# for example I want to find pt = [pt2[0]+dx, ...]
+def find_another_point_inline(pt1, pt2, dx):
+    pt = [None, None]
+    pt[0] = pt2[0] + dx
+    if pt1[0] != pt2[0]:
+        pt[1] = (pt[0]-pt1[0]) / (pt2[0]-pt1[0]) * (pt2[1]-pt1[1]) + pt1[1]
+        pt[1] = int(pt[1])
+    else:
+        pt[1] = pt2[1]
+    
+    return pt
+
+
+# factor used to manipulate length of vector
 def get_velocity(fps=30):
     data = fjson.read_filejson(file_path="tmp/track_centroid.json")
     time = 1 / fps
@@ -201,19 +216,12 @@ def get_velocity(fps=30):
     
         # euclidian distance of two centroid
         dist = get_euclidian_distance(last2, last)
-
         # calculate speed in pixel/s
         speed_pixel = dist / time
-        
         # calculate teta in degree
         theta = get_theta(last2, last)
-
         # write data of speed & teta to track_velocity.json
         fjson.write_trackvelocityjson(key=key, speed=speed_pixel, theta=theta)
-
-
-
-        
 
 
 def get_lower_upper_hsv(color=[30,200,127], err_range=50, v_range=50):
