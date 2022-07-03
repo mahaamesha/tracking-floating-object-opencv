@@ -103,7 +103,7 @@ def write_trackvelocityjson(key, speed, theta):
 
 
 def init_tmp_files():
-    write_obj_to_filejson(file_path="tmp/frame_text.json", obj={"fps": None, "contours": None})
+    write_obj_to_filejson(file_path="tmp/frame_text.json", obj={"fps": None, "contours": None, "velocity": None})
     write_obj_to_filejson(file_path="tmp/track_centroid.json", obj={"id_1": []})
     write_obj_to_filejson(file_path="tmp/track_velocity.json", obj={"id_1": {"speed": [], "theta": []}})
 

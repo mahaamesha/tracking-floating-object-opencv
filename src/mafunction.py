@@ -154,7 +154,7 @@ def put_text_centroid(frame, xc, yc, factor=1):
     org = (xc-dist-dist, yc-dist)
     fontFace = cv.FONT_HERSHEY_SIMPLEX
     fontScale = 0.5*factor
-    color = (0,255,0)
+    color = (255,0,0)
     thickness = 1*factor
     
     cv.putText(frame, text, org, fontFace, fontScale, color, thickness, cv.LINE_AA)
@@ -191,14 +191,12 @@ def get_theta(pt1=[], pt2=[]):
     return theta
 
 
-def draw_velocity(frame, centroid, speed, theta):
-    v = int(speed / 2)
+def get_velocity_component(speed, theta):
+    v = int(speed / 1.0)
     vx = int(v * cos(theta * pi / 180))      # convert theta_degree to theta_radian
     vy = int(v * sin(theta * pi / 180))      # convert theta_degree to theta_radian
-
-    end_pt = [centroid[0] + vx, centroid[1] - vy]   # y minus, because depends on image coordinate
     
-    cv.arrowedLine(frame, pt1=centroid, pt2=end_pt, color=(0,255,0), thickness=4)
+    return vx, vy
 
 
 # factor used to manipulate length of vector
@@ -221,7 +219,9 @@ def get_velocity(frame, fps=30):
         fjson.write_trackvelocityjson(key=key, speed=speed, theta=theta)
 
         # draw vector velocity
-        draw_velocity(frame, centroid=last, speed=speed, theta=theta)
+        vx, vy = get_velocity_component(speed, theta)
+        end_pt = [last[0] + vx, last[1] - vy]   # y minus, because depends on image coordinate
+        cv.arrowedLine(frame, pt1=last, pt2=end_pt, color=(255,0,0), thickness=4)
 
 
 def get_lower_upper_hsv(color=[30,200,127], err_range=50, v_range=50):
@@ -486,7 +486,6 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
         # centroid data has been writen by process_func
         # time measured by fps data. time = 1/fps
         get_velocity(frame, fps)
-        # draw_velocity()
 
         # write final frame
         if isSave: out.write(frame)
