@@ -1,3 +1,4 @@
+from math import sqrt, atan, pi
 import cv2 as cv
 import sys
 import numpy as np
@@ -166,6 +167,53 @@ def draw_centroid(frame, arr):
         put_text_centroid(frame, xc, yc, factor=2)
 
     return frame
+
+
+def get_euclidian_distance(pt1=[], pt2=[]):
+    dx = pt2[0] - pt1[0]
+    dy = pt2[1] - pt1[1]
+
+    dist = sqrt(dx**2 + dy**2)
+
+    return dist
+
+
+def get_theta(pt1=[], pt2=[]):
+    dx = pt2[0] - pt1[0]
+    dy = pt2[1] - pt1[1]
+
+    if dx == 0:
+        theta = 0
+    else:
+        theta = atan(dy/dx) * 180 / pi       # in degree
+
+    return theta
+
+
+def get_velocity(fps=30):
+    data = fjson.read_filejson(file_path="tmp/track_centroid.json")
+    time = 1 / fps
+
+    for key in data.keys():     # key: id_1, id_2, ...
+        # get two data of last centroid
+        last2 = data[key][len(data[key])-2]
+        last = data[key][len(data[key])-1]
+    
+        # euclidian distance of two centroid
+        dist = get_euclidian_distance(last2, last)
+
+        # calculate speed in pixel/s
+        speed_pixel = dist / time
+        
+        # calculate teta in degree
+        theta = get_theta(last2, last)
+
+        # write data of speed & teta to track_velocity.json
+        fjson.write_trackvelocityjson(key=key, speed=speed_pixel, theta=theta)
+
+
+
+        
 
 
 def get_lower_upper_hsv(color=[30,200,127], err_range=50, v_range=50):
@@ -425,6 +473,11 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
         fps = get_cap_fps(cap)
         fjson.write_keyvalue(file_path="tmp/frame_text.json", key="fps", value=fps)
         frame = put_text2frame(frame, factor=2)
+
+        # adding velocitiy vector
+        # centroid data has been writen by process_func
+        # time measured by fps data. time = 1/fps
+        get_velocity(fps)
 
         # write final frame
         if isSave: out.write(frame)
