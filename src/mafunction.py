@@ -1,8 +1,9 @@
-from math import sqrt, atan, pi
+from math import cos, sin, sqrt, atan, pi
 import cv2 as cv
 import sys
 import numpy as np
 from imutils import grab_contours, resize
+from sympy import centroid
 
 import src.json_function as fjson
 
@@ -190,22 +191,18 @@ def get_theta(pt1=[], pt2=[]):
     return theta
 
 
-# find another point inline with pt1, pt2
-# for example I want to find pt = [pt2[0]+dx, ...]
-def find_another_point_inline(pt1, pt2, dx):
-    pt = [None, None]
-    pt[0] = pt2[0] + dx
-    if pt1[0] != pt2[0]:
-        pt[1] = (pt[0]-pt1[0]) / (pt2[0]-pt1[0]) * (pt2[1]-pt1[1]) + pt1[1]
-        pt[1] = int(pt[1])
-    else:
-        pt[1] = pt2[1]
+def draw_velocity(frame, centroid, speed, theta):
+    v = int(speed / 2)
+    vx = int(v * cos(theta * pi / 180))      # convert theta_degree to theta_radian
+    vy = int(v * sin(theta * pi / 180))      # convert theta_degree to theta_radian
+
+    end_pt = [centroid[0] + vx, centroid[1] - vy]   # y minus, because depends on image coordinate
     
-    return pt
+    cv.arrowedLine(frame, pt1=centroid, pt2=end_pt, color=(0,255,0), thickness=4)
 
 
 # factor used to manipulate length of vector
-def get_velocity(fps=30):
+def get_velocity(frame, fps=30):
     data = fjson.read_filejson(file_path="tmp/track_centroid.json")
     time = 1 / fps
 
@@ -217,11 +214,14 @@ def get_velocity(fps=30):
         # euclidian distance of two centroid
         dist = get_euclidian_distance(last2, last)
         # calculate speed in pixel/s
-        speed_pixel = dist / time
+        speed = dist / time
         # calculate teta in degree
         theta = get_theta(last2, last)
         # write data of speed & teta to track_velocity.json
-        fjson.write_trackvelocityjson(key=key, speed=speed_pixel, theta=theta)
+        fjson.write_trackvelocityjson(key=key, speed=speed, theta=theta)
+
+        # draw vector velocity
+        draw_velocity(frame, centroid=last, speed=speed, theta=theta)
 
 
 def get_lower_upper_hsv(color=[30,200,127], err_range=50, v_range=50):
@@ -485,7 +485,8 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
         # adding velocitiy vector
         # centroid data has been writen by process_func
         # time measured by fps data. time = 1/fps
-        get_velocity(fps)
+        get_velocity(frame, fps)
+        # draw_velocity()
 
         # write final frame
         if isSave: out.write(frame)
