@@ -91,6 +91,8 @@ def write_trackcentroidjson(centroid_arr=[]):
 def init_tmp_files():
     write_obj_to_filejson(file_path="tmp/frame_text.json", obj={"fps": None, "contours": None})
     write_obj_to_filejson(file_path="tmp/track_centroid.json", obj={"id_1": []})
+    write_obj_to_filejson(file_path="tmp/track_velocity.json", obj={"id_1": {"speed": [], "angle": []}})
+
 
 
 # (END) SPECIFIC FUNCITION
@@ -98,10 +100,5 @@ def init_tmp_files():
 
 
 if __name__ == "__main__":
+    init_tmp_files()
     print("Run json_function.py ... Done")
-    # initialization format of some file.json
-    # write_obj_to_filejson(file_path="tmp/frame_text.json", obj={"fps": None, "contours": None})
-    # write_obj_to_filejson(file_path="tmp/track_centroid.json", obj={"id_1": []})
-    # write_obj_to_filejson(file_path="tmp/track_centroid.json", obj={})
-    
-    # write_keyvalue(file_path="tmp/frame_text.json", key="fps", value=24)
