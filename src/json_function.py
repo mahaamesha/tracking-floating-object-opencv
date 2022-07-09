@@ -88,8 +88,8 @@ def write_trackcentroidjson(centroid_arr=[]):
         json.dump(data, f, indent=4)
 
 
-def write_trackvelocityjson(key, speed, theta):
-    file_path = "tmp/track_velocity.json"
+def write_trackvectorjson(key, speed, theta, acceleration):
+    file_path = "tmp/track_vector.json"
     path = os.path.join(project_path, file_path)
 
     with open(path, "r") as f:
@@ -97,15 +97,16 @@ def write_trackvelocityjson(key, speed, theta):
         
         ( data[key]["speed"] ).append(speed)
         ( data[key]["theta"] ).append(theta)
+        ( data[key]["acceleration"] ).append(acceleration)
 
     with open(path, "w") as f:
         json.dump(data, f, indent=4)
 
 
 def init_tmp_files():
-    write_obj_to_filejson(file_path="tmp/frame_text.json", obj={"fps": None, "contours": None, "velocity": None})
+    write_obj_to_filejson(file_path="tmp/frame_text.json", obj={"fps": None, "contours": None, "velocity": None, "acceleration": None})
     write_obj_to_filejson(file_path="tmp/track_centroid.json", obj={"id_1": []})
-    write_obj_to_filejson(file_path="tmp/track_velocity.json", obj={"id_1": {"speed": [], "theta": []}})
+    write_obj_to_filejson(file_path="tmp/track_vector.json", obj={"id_1": {"speed": [], "theta": [], "acceleration": []}})
 
 
 

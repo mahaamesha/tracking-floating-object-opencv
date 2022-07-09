@@ -122,14 +122,22 @@ def put_text2frame(frame, factor=1):
     fontScale = 0.5*factor
     color = (0,255,0)
     thickness = 1*factor
+    text_color_bg = (0,0,0)
 
     data = fjson.read_filejson(file_path="tmp/frame_text.json")
 
     count = 0   # to count the number of line(s)
     for key in data.keys():
         text = str("%s: %s" %(key, data[key]))
-        org = (org[0], org[1]+dist*count)     # 20 is distance to new line
-        cv.putText(frame, text, org, fontFace, fontScale, color, thickness, cv.LINE_AA)
+        temp_org = (org[0], org[1]+dist*count)     # 20 is distance to new line
+
+        # background
+        text_size, _ = cv.getTextSize(text, fontFace, fontScale, thickness)
+        text_w, text_h = text_size
+        cv.rectangle(frame, temp_org, (temp_org[0]+text_w, temp_org[1]-text_h), text_color_bg, -1)
+
+        # draw text
+        cv.putText(frame, text, temp_org, fontFace, fontScale, color, thickness, cv.LINE_AA)
         count += 1
 
     return frame
@@ -154,7 +162,7 @@ def put_text_centroid(frame, xc, yc, factor=1):
     org = (xc-dist-dist, yc-dist)
     fontFace = cv.FONT_HERSHEY_SIMPLEX
     fontScale = 0.5*factor
-    color = (255,0,0)
+    color = (0,255,0)
     thickness = 1*factor
     
     cv.putText(frame, text, org, fontFace, fontScale, color, thickness, cv.LINE_AA)
@@ -191,16 +199,31 @@ def get_theta(pt1=[], pt2=[]):
     return theta
 
 
-def get_velocity_component(speed, theta):
-    v = int(speed / 1.0)
+def get_vector_component(vector, theta):
+    v = int(vector / 1.0)
     vx = int(v * cos(theta * pi / 180))      # convert theta_degree to theta_radian
     vy = int(v * sin(theta * pi / 180))      # convert theta_degree to theta_radian
     
     return vx, vy
 
 
+# update vector data in frame_text.json
+def update_vector_data_in_frametextjson(ex, ey, key="velocity/acceleration"):    # element_x, element_y
+    x_str = "{:.0f}".format(ex)
+    x_str = "{:>3}".format(x_str)
+    y_str = "{:.0f}".format(abs(ey))      # abs() because I will add the minus later
+    y_str = "{:>3}".format(y_str)
+    
+    if ey > 0:
+        show_str = "%si + %sj" %(x_str, y_str)
+    else:
+        show_str = "%si - %sj" %(x_str, y_str)
+
+    fjson.write_keyvalue(file_path="tmp/frame_text.json", key=key, value=show_str)
+
+
 # factor used to manipulate length of vector
-def get_velocity(frame, fps=30):
+def get_vector(frame, fps=30):
     data = fjson.read_filejson(file_path="tmp/track_centroid.json")
     time = 1 / fps
 
@@ -213,15 +236,25 @@ def get_velocity(frame, fps=30):
         dist = get_euclidian_distance(last2, last)
         # calculate speed in pixel/s
         speed = dist / time
+        # calculate acceleration in pixel/ss
+        acceleration = speed / time
         # calculate teta in degree
         theta = get_theta(last2, last)
-        # write data of speed & teta to track_velocity.json
-        fjson.write_trackvelocityjson(key=key, speed=speed, theta=theta)
+        # write data of speed & teta to track_vector.json
+        fjson.write_trackvectorjson(key=key, speed=speed, theta=theta, acceleration=acceleration)
 
         # draw vector velocity
-        vx, vy = get_velocity_component(speed, theta)
+        vx, vy = get_vector_component(speed, theta)
+        # draw line from 2 points: last_centroid and ujung_vector
         end_pt = [last[0] + vx, last[1] - vy]   # y minus, because depends on image coordinate
-        cv.arrowedLine(frame, pt1=last, pt2=end_pt, color=(255,0,0), thickness=4)
+        cv.arrowedLine(frame, pt1=last, pt2=end_pt, color=(0,255,0), thickness=4)
+
+        # get vector acceleration component
+        ax, ay = get_vector_component(acceleration, theta)
+
+        # update velocity data in frame_text.json
+        update_vector_data_in_frametextjson(vx, vy, key="velocity")
+        update_vector_data_in_frametextjson(ax, ay, key="acceleration")
 
 
 def get_lower_upper_hsv(color=[30,200,127], err_range=50, v_range=50):
@@ -485,7 +518,7 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
         # adding velocitiy vector
         # centroid data has been writen by process_func
         # time measured by fps data. time = 1/fps
-        get_velocity(frame, fps)
+        get_vector(frame, fps)
 
         # write final frame
         if isSave: out.write(frame)
