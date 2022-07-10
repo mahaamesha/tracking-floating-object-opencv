@@ -179,6 +179,8 @@ def plot_params_in_one_graph(obj, params=["xc", "vx"]):
 
         ax.legend([l1, l2], [params[0], params[1]])
 
+    plt.tight_layout()
+    
     # save it
     try:    # for notebook environment
         fig.savefig("../media/plot_%s_%s.jpg" %(params[0], params[1]))
