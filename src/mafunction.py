@@ -3,7 +3,6 @@ import cv2 as cv
 import sys
 import numpy as np
 from imutils import grab_contours, resize
-from sympy import centroid
 
 import src.json_function as fjson
 
@@ -200,11 +199,11 @@ def get_theta(pt1=[], pt2=[]):
 
 
 def get_vector_component(vector, theta):
-    v = int(vector / 1.0)
-    vx = int(v * cos(theta * pi / 180))      # convert theta_degree to theta_radian
-    vy = int(v * sin(theta * pi / 180))      # convert theta_degree to theta_radian
+    num = int(vector / 1.0)
+    ex = int(num * cos(theta * pi / 180))      # convert theta_degree to theta_radian
+    ey = int(num * sin(theta * pi / 180))      # convert theta_degree to theta_radian
     
-    return vx, vy
+    return ex, ey
 
 
 # update vector data in frame_text.json
