@@ -512,12 +512,14 @@ def play_video(file_path="media/media1.mp4", process_func=pass_processing_frame,
         # adding text: fps, contours, etc
         fps = get_cap_fps(cap)
         fjson.write_keyvalue(file_path="tmp/frame_text.json", key="fps", value=fps)
-        frame = put_text2frame(frame, factor=2)
 
         # adding velocitiy vector
         # centroid data has been writen by process_func
         # time measured by fps data. time = 1/fps
         get_vector(frame, fps)
+
+        # display important information to frame
+        frame = put_text2frame(frame, factor=2)
 
         # write final frame
         if isSave: out.write(frame)
