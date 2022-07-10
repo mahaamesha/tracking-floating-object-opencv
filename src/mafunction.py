@@ -163,6 +163,12 @@ def put_text_centroid(frame, xc, yc, factor=1):
     fontScale = 0.5*factor
     color = (0,255,0)
     thickness = 1*factor
+    text_color_bg = (0,0,0)
+
+    # background
+    text_size, _ = cv.getTextSize(text, fontFace, fontScale, thickness)
+    text_w, text_h = text_size
+    cv.rectangle(frame, org, (org[0]+text_w, org[1]-text_h), text_color_bg, -1)
     
     cv.putText(frame, text, org, fontFace, fontScale, color, thickness, cv.LINE_AA)
 
