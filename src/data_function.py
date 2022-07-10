@@ -188,14 +188,14 @@ def plot_params_in_one_graph(obj, params=["xc", "vx"]):
 
 
 if __name__ == "__main__":
-    data_obj = build_data_obj()
+    data_obj = build_data_obj(fps=24.76)
     data_obj = add_vector_component_to_obj(data_obj, param="speed", add_key=["vx", "vy"])
 
     plot_centroid_data(data_obj)
 
     params=["xc", "yc", "vx", "vy", "speed", "acceleration", "theta"]
     plot_param_per_time(data_obj, params=params)
-    
+
 
     params = ["xc", "vx"]
     plot_params_in_one_graph(data_obj, params=params)
