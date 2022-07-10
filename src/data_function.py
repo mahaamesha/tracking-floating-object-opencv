@@ -1,10 +1,10 @@
-import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.pyplot as plt
+from math import sin, cos, pi
 
 from json_function import read_filejson
 
 
-# return dataframe and dict
 def build_data_obj(fps=30):
     # data from track_centroid.json
     data_centroid = read_filejson(file_path="tmp/track_centroid.json")
@@ -47,12 +47,32 @@ def build_data_obj(fps=30):
     return obj
 
 
+def add_vector_component_to_obj(obj, param="speed", add_key=["vx", "vy"]):
+    # add key to obj
+    for key in add_key:
+        obj[key] = []
+
+    # assign value to the new key
+    for i in range( len(obj[param]) ):
+        # get vector components
+        num = obj[param][i]
+        theta = obj["theta"][i]
+        ex = num * cos(theta * pi / 180)      # convert theta_degree to theta_radian
+        ey = num * sin(theta * pi / 180)      # convert theta_degree to theta_radian
+        
+        # append data to list: obj[key]
+        obj[add_key[0]].append(ex)
+        obj[add_key[1]].append(ey)
+
+    return obj
+
+
 def plot_centroid_data(obj):
     x = obj["xc"]
     y = obj["yc"]
 
-    fig, axs = plt.subplots(2, figsize=(8,3*2))
-    fig.suptitle("Centroid Position")
+    fig, axs = plt.subplots(2, figsize=(12,8))
+    fig.suptitle("Centroid Position", size="xx-large", weight="bold")
     
     for ax in axs:
         ax.plot(x, y)
@@ -61,77 +81,124 @@ def plot_centroid_data(obj):
         # ax.label_outer()        # Hide x labels and tick labels for top plots and y ticks for right plots.
         ax.grid(True)
 
-    axs[1].set_xlim(max(x)//3, int(max(x)*2/3))
+    axs[1].set_xlim(int(max(x)*2/5), int(max(x)*3/5))
     
-    fig.tight_layout()
-    plt.show()
-    fig.savefig("media/plot_centroid.jpg")
+    plt.tight_layout()
+    
+    # save it
+    try:    # for notebook environment
+        fig.savefig("../media/plot_centroid.jpg")
+        plt.show()
+    except:     # for local python environment
+        fig.savefig("media/plot_centroid.jpg")
 
 
 def plot_param_per_time(obj, params=["xc", "yc", "speed", "acceleration"]):
     # define x_data for plotting
     x = obj["time"]
 
-    # define figure and axis
-    fig, axs = plt.subplots(nrows=len(params)//2, ncols=2)
-    fig.suptitle("Plot Data")
-
     # define y_data for every plot
     for param in params:
         y = obj[param]
+
+        # define figure and axis
+        # I want to plot curve in (1) full range x axis, (2) middle range x axis
+        fig, axs = plt.subplots(nrows=2, figsize=(12,8))
+        suptitle_text = "%s vs time" %param
+        fig.suptitle(suptitle_text, size="xx-large", weight="bold")
         
         # plotting every data
         for ax in axs:
             ax.plot(x, y)
-
             ax.grid(True)
 
-    
-    plt.show()
-            
-        
-    
+            # set label
+            ax.set_xlabel("time (s)")
+            if param in ["xc", "yc"]:
+                ax.set_ylabel("%s (px)" %param)
+            elif param in ["speed", "vx", "vy"]:
+                ax.set_ylabel("%s (px/s)" %param)
+            elif param in ["acceleration", "ax", "ay"]:
+                ax.set_ylabel("%s (px/s^s)" %param)
+            elif param == "theta":
+                ax.set_ylabel("%s (°)" %param)
 
-    
+            # set axis limit
+            if param == "yc":
+                ax.set_ylim(max(y), min(y))     # reverse y axis
 
-def plot_vector_data(obj, key="speed/acceleration/theta", x_data="frame/time"):
-    x = obj[x_data]
-    y = obj[key]
+            # set x limit for subplots in row=1, set limit in midle range
+            if ax == axs[len(axs)-1]:
+                ax.set_xlim(int(max(x)*2/5), int(max(x)*3/5))
 
-    fig, axs = plt.subplots(2, figsize=(8,3*2))
-    fig.suptitle("%s vs %s" %(key, x_data))
+        plt.tight_layout()
 
+        # save it
+        try:    # for notebook environment
+            fig.savefig("../media/plot_%s.jpg" %param)
+            plt.show()
+        except:     # for local python environment
+            fig.savefig("media/plot_%s.jpg" %param)
+
+
+# plot position, velocitiy, and acceleration in a graph
+def plot_params_in_one_graph(obj, params=["xc", "vx"]):  
+    # define figure and axis. I only want to have 1 figure
+    # I want to plot curve in (1) full range x axis, (2) middle range x axis
+    fig, axs = plt.subplots(nrows=2, figsize=(12,8))
+    suptitle_text = "Plot %s and %s" %(params[0], params[1])
+    fig.suptitle(suptitle_text, size="xx-large", weight="bold")
+
+    # define x y data for plotting
+    x = obj["time"]
+    y1 = obj[params[0]]
+    y2 = obj[params[1]]
+
+    # plotting every data
     for ax in axs:
-        ax.plot(x, y)
-        ax.set_xlabel(x_data)
-        if "speed" in key: ax.set_ylabel("speed (px/s)")
-        elif "acceleration" in key: ax.set_ylabel("acceleration (px/s^2)")
+        l1, = ax.plot(x, y1)
+
+        ax2 = ax.twinx()
+        l2, = ax2.plot(x, y2, color="gray")
 
         ax.grid(True)
 
-    axs[1].set_xlim(max(x)//3, int(max(x)*2/3))
-    fig.tight_layout()
-    plt.show()
-    fig.savefig("media/plot_%s.jpg" %key)
+        # set label
+        ax.set_xlabel("time (s)")
+        ax.set_ylabel("%s (px)" %params[0])
+        ax2.set_ylabel("%s (px/s)" %params[1])
+
+        # set axis limit
+        if "yc" in params:
+            ax.set_ylim(max(y1), min(y1))     # reverse y axis
+
+        # set x limit for subplots in row=1, set limit in midle range
+        if ax == axs[len(axs)-1]:
+            ax.set_xlim(int(max(x)*2/5), int(max(x)*3/5))
+                
+
+        ax.legend([l1, l2], [params[0], params[1]])
+
+    # save it
+    try:    # for notebook environment
+        fig.savefig("../media/plot_%s_%s.jpg" %(params[0], params[1]))
+        plt.show()
+    except:     # for local python environment
+        fig.savefig("media/plot_%s_%s.jpg" %(params[0], params[1]))
 
 
 if __name__ == "__main__":
     data_obj = build_data_obj()
-    df = pd.DataFrame(data_obj)
-    print(df)
+    data_obj = add_vector_component_to_obj(data_obj, param="speed", add_key=["vx", "vy"])
 
-    plot_param_per_time(data_obj)
+    plot_centroid_data(data_obj)
 
-    # centroid_obj = build_centroid_obj()
-    # df = pd.DataFrame(centroid_obj)
-    # print(df)
+    params=["xc", "yc", "vx", "vy", "speed", "acceleration", "theta"]
+    plot_param_per_time(data_obj, params=params)
+    
 
-    # plot_centroid_data(centroid_obj)
+    params = ["xc", "vx"]
+    plot_params_in_one_graph(data_obj, params=params)
 
-
-    # vector_obj = build_vector_obj(fps=24.76)
-    # df = pd.DataFrame(vector_obj)
-    # print(df)
-
-    # plot_vector_data(vector_obj, key="speed", x_data="time")
-    # plot_vector_data(vector_obj, key="acceleration", x_data="time")
+    params = ["yc", "vy"]
+    plot_params_in_one_graph(data_obj, params=params)

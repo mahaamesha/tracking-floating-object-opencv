@@ -1,4 +1,4 @@
-from math import cos, sin, sqrt, atan, pi
+from math import cos, inf, sin, sqrt, atan, pi
 import cv2 as cv
 import sys
 import numpy as np
@@ -191,9 +191,9 @@ def get_theta(pt1=[], pt2=[]):
     dy = pt2[1] - pt1[1]
 
     if dx == 0:
-        theta = 0
+        theta = - atan(inf) * 180 / pi      # minus because the coordinat orientation
     else:
-        theta = atan(dy/dx) * 180 / pi       # in degree
+        theta = - atan(dy/dx) * 180 / pi       # in degree
 
     return theta
 
